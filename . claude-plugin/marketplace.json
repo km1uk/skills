@@ -1,1 +1,13 @@
-{}
+{
+  "name": "km1uk-skills",
+  "plugins": [
+    {
+      "name": "meal-planner",
+      "source": {
+        "source": "github",
+        "repo": "km1uk/skills/meal-planner"
+      },
+      "description": "Meal planner skill"
+    }
+  ]
+}
