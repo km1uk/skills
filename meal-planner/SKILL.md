@@ -24,6 +24,12 @@ Pull two pools in parallel:
 
 Note the completion date of any completed tasks — this is used in Step 4 to favour fresher recipes.
 
+### Mandatory hard-to-source filter — do this immediately, before Step 3
+
+Scan every fetched task title (active and completed) for: **pheasant, sea bream (or "bream"), rainbow trout, veal loin, clams, chalk stream trout, or a specialist/named chorizo variety**. Remove any match from the candidate pool.
+
+This has been missed twice in a row despite being stated as a rule elsewhere — so do it as an explicit, visible action, not a mental note: **write out the list of excluded tasks** (e.g. "Filtered out as hard-to-source: Pheasant makhani, Whole bream with ratatouille couscous") before moving on to Step 3. If nothing was filtered, say so explicitly. Do not proceed to plan-building until this line exists in your working output — treat it the same as checking priority tiers in Step 3, not as a preference to weigh later.
+
 ## Step 3 – Identify the next available priority tier
 
 Todoist uses p1–p4 (p1 = highest, p4 = lowest/default). The recipe list uses priority as a "cooking queue":
@@ -34,19 +40,23 @@ Todoist uses p1–p4 (p1 = highest, p4 = lowest/default). The recipe list uses p
 
 ## Step 4 – Apply constraints and build the plan
 
-Default constraints (apply unless user overrides):
+The candidate pool should already be filtered for hard-to-source ingredients (Step 2) before you reach this step — if that filtering line is missing from your working output, go back and do it now before selecting anything.
+
+Default constraints (apply unless user overrides), to the filtered pool:
 - **7 days**, one main course per day
 - **No repeated primary protein** across the 7 days (e.g. no two chicken dishes). Proteins to track: chicken, beef, pork, lamb, fish/seafood, duck, game, vegetarian/vegan
-- **Priority filter**: **only pick from p4 tasks**. p1, p2, and p3 all mean the recipe is already planned or in progress — never select them. This is a hard rule, not a default.
+- **No repeated cooking format/style** across the 7 days — this is separate from protein variety. Watch for: two skewer dishes, two curries, two meatball/kofte-style dishes, two noodle stir-fries, etc. **Skewers specifically: no more than one skewer-format dish per week**, even if the proteins differ.
+- **Seasonal appropriateness**: avoid dishes that clash with the current season/weather (e.g. slow-braised pork cheeks or heavy pies in high summer). Weigh this when selecting, not just when the user objects. **When drawing on completed tasks for seasonally-fitting inspiration, the most recent 3-month window is usually the wrong season** (e.g. in August, June–August completed tasks skew summer already picked, while the useful comparison is last year's same window). Prefer scanning the **same calendar months from the prior year(s)** (e.g. Aug–Sep from last year, or the year before) over just the nearest chunk, since a dish cooked in the right season a year ago is more relevant than one cooked in the wrong season last month.
+- **Priority filter**: **only pick from p4 tasks**. p1, p2, and p3 all mean the recipe is already planned or in progress — never select them. This is a hard rule, not a default. **This filter applies to active tasks only.** Completed tasks are a separate, priority-agnostic pool — a completed task's leftover priority tag (from whenever it was last planned) is stale and irrelevant; don't include or exclude a completed task based on it.
 - **Recency filter**: deprioritise recipes completed within the last ~2 months to avoid repetition. If the active list is thin, these can be included but flag them as recently cooked.
-- **Completed recipes** can serve as inspiration / fallbacks if the active list is thin
+- **Completed recipes** can serve as inspiration / fallbacks if the active list is thin. **When checking for recent repeats (same protein, format, or dish), don't stop at a 3-month window** — if the user asks to look further back, or if the active p4 pool is thin, keep expanding the completed-tasks window (6 months, then a year+) rather than defaulting to only the most recent chunk. **Before proposing any swap, cross-check it against every completed-task batch already fetched in this session** (not just the batch that prompted the current suggestion) — a dish completed just days ago is easy to miss if it was only surfaced in an earlier fetch.
 
 **Accompaniment awareness**: Many recipes implicitly require a carb or side (e.g. curry → rice or bread, stew → potatoes or crusty bread, stir-fry → noodles or rice). When selecting the 7 recipes, mentally tag the implied accompaniment for each and ensure the week isn't monotonous — e.g. avoid a week where every meal lands on rice, or where 4+ dishes need bread. Aim for variety across: rice, noodles, bread/flatbread, potatoes, pasta, and grain-free/standalone dishes. Surface the accompaniment alongside each recipe in the plan (Step 5).
 
 **Common constraint the user may add:**
 - "No time-consuming recipes" / "weeknight friendly" → exclude anything that reads as a slow-cook, braise, or long-prep dish (e.g. cheeks, short ribs, confit, slow-roast)
 - "Even at the weekend" → applies the quick-cook filter to all 7 days
-- Ingredient availability → swap out hard-to-source items (specialist fish, offal cuts) for accessible alternatives from the list
+- Ingredient availability → swap out hard-to-source items (see the hard-to-source list above, plus any other specialist fish, offal cuts, or niche ingredients) for accessible alternatives from the list
 
 When the user asks to swap a recipe, always pick a replacement from the same project list, respecting the protein-variety rule and accompaniment balance.
 
@@ -117,6 +127,31 @@ Once the plan is confirmed:
 ```
 update-tasks([{id, priority: "p2"}])   ← or whichever tier is next free
 ```
+
+## Step 9 – Generate the shopping list
+
+Once the plan is confirmed (and after any ingredient lookups from Step 5), build an interactive shopping checklist:
+
+- **Format**: a standalone HTML file (`/mnt/user-data/outputs/shopping-list.html`) with real `<input type="checkbox">` elements — not markdown `- [ ]` checkboxes, which render as static text and can't be ticked.
+- **Group by category**: e.g. Meat/Fish/Poultry, Fruit & Veg, Herbs, Dairy/Chilled/Bakery, Store Cupboard. Include a progress indicator (e.g. "X of Y checked") and a reset button.
+- **Consolidate shared ingredients**: if two or more recipes call for the same or equivalent ingredient (onions, garlic, shallots, butter, olive oil, plain flour, etc.), combine them into a **single line item** with the summed/combined quantity and a tag listing every recipe that needs it (e.g. `"2 onions" — "pie, confit beans"`). Don't list the same ingredient as separate entries per recipe — that's the default failure mode and has had to be corrected before. Build the consolidated list directly rather than listing per-recipe and merging later.
+- **Include every accompaniment as its own line** (mash, rice, salad, flatbread, etc.), not just the core recipe ingredients — these are easy to forget and have been missed before.
+- **Known bug to avoid**: if implementing the checklist as JS driven by a data object keyed by category name, category names containing `&` (e.g. "Meat & Fish") break `querySelector`/CSS ID selectors. Use safe keys (e.g. `cat0`, `cat1`, ...) or escape appropriately — don't use the raw category string as an element ID.
+- **Serving sizes**: note how many each recipe serves (from the source) if asked, or proactively flag any recipe that serves noticeably fewer/more than the rest of the week so scaling needs are visible.
+- If a recipe's ingredients are missing or unconfirmed (per Step 5's handling), surface that clearly in the list (warning banner or flagged line) rather than silently omitting it, and remove the flag once the ingredients are added.
+
+## Step 10 – Add the meat to the Butcher list in Todoist
+
+Once the shopping list is built (Step 9), add every meat item from it to the user's **"Butcher - Greengrocer"** Todoist project:
+
+1. Search Todoist for "Butcher" to find the **Butcher - Greengrocer** project and get its ID. Look it up fresh each time; don't hard-code it.
+2. Fetch its active tasks first with `find-tasks`, and its sections with `find-sections` (if it has a Butcher section, add the items there). Don't add duplicates: if an item is already on the list, update its quantity instead of adding it again.
+3. Add **one task per meat item** with `add-tasks`, batched in a single call:
+   - `content`: `<item> - <quantity>` (e.g. `Diced braising beef - 500g`, `Chicken breast fillets - 4`)
+   - `description`: the day and recipe it's for (e.g. `Sun: Smoky beef & black bean stew with cornbread dumplings`)
+4. **Scope**: meat, poultry and butcher items such as sausages and chorizo. Fish and seafood (prawns, cod, etc.) are not butcher items: leave them off and tell the user, offering to add them. Only add greengrocer items (fruit, veg, herbs) if the user asks.
+5. Use the confirmed quantities from the recipes. If a recipe is still unconfirmed (Step 5), flag its item as an estimate in the description.
+6. After adding, re-fetch the project's tasks to check that every item was added, and confirm the list to the user.
 
 ## Notes
 
